@@ -42,6 +42,8 @@ public class UIHandler : MonoBehaviour
 	{
 		hourInput = Mathf.Clamp(int.Parse(hourInputField.text), 0, 23);
 		minuteInput = Mathf.Clamp(int.Parse(minuteInputField.text), 0, 59);
+		hourInputField.text = hourInput.ToString("00");
+		minuteInputField.text = minuteInput.ToString("00");
 		float _currentTime = (float)(hourInput * 60 * 60 + minuteInput * 60) / (float)Clock.TotalTimeInDay;
 		alarmHourSetupHand.transform.localRotation = Quaternion.Euler(0, 0, -_currentTime * 360);
 		alarmMinuteSetupHand.transform.localRotation = Quaternion.Euler(0, 0, -_currentTime * 360 * 24);
