@@ -40,8 +40,22 @@ public class UIHandler : MonoBehaviour
 	}
 	public void DigitalInputUpdate()
 	{
-		hourInput = Mathf.Clamp(int.Parse(hourInputField.text), 0, 23);
-		minuteInput = Mathf.Clamp(int.Parse(minuteInputField.text), 0, 59);
+		try
+		{
+			hourInput = Mathf.Clamp(int.Parse(hourInputField.text), 0, 23);
+		}
+		catch
+		{
+			hourInput = 0;
+		}
+		try
+		{
+			minuteInput = Mathf.Clamp(int.Parse(minuteInputField.text), 0, 59);
+		}
+		catch
+		{
+			minuteInput = 0;
+		}
 		hourInputField.text = hourInput.ToString("00");
 		minuteInputField.text = minuteInput.ToString("00");
 		float _currentTime = (float)(hourInput * 60 * 60 + minuteInput * 60) / (float)Clock.TotalTimeInDay;
@@ -63,8 +77,10 @@ public class UIHandler : MonoBehaviour
 		hourInputField.text = hourInput.ToString("00");
 		minuteInputField.text = minuteInput.ToString("00");
 	}
-	public void SetAlarmAndSwitchMenue()
+	public void SetAlarm()
 	{
+		hourInputField.text = hourInput.ToString("00");
+		minuteInputField.text = minuteInput.ToString("00");
 		hourInput = int.Parse(hourInputField.text);
 		minuteInput = int.Parse(minuteInputField.text);
 		float _currentTime = hourInput * 60 * 60 + minuteInput * 60;

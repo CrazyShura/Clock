@@ -158,7 +158,7 @@ public class Clock : MonoBehaviour
 	}
 	public void SetAlarm(float time)
 	{
-		if (time > 0 && time < totalTimeInDay)
+		if (time >= 0 && time < totalTimeInDay)
 		{
 			alarmTime = time;
 			alarmSetUp.Invoke(alarmTime);

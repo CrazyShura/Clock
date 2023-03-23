@@ -5,7 +5,7 @@ public class ClockGraphics : MonoBehaviour
 {
 	#region Fields
 	[SerializeField]
-	Transform hourHand, minuteHand , alarmHand;
+	Transform hourHand, minuteHand, alarmHand;
 	[SerializeField]
 	TMP_Text digitalDisplay;
 	#endregion
@@ -25,12 +25,12 @@ public class ClockGraphics : MonoBehaviour
 	void UpdateClock()
 	{
 		float _currentTime = Clock.Instance.CurrentTime / Clock.TotalTimeInDay;
-		hourHand.transform.localRotation = Quaternion.Euler(0, 0,  - _currentTime * 360 * 2);
-		minuteHand.transform.localRotation = Quaternion.Euler(0, 0,  - _currentTime * 360 * 24);
+		hourHand.transform.localRotation = Quaternion.Euler(0, 0, -_currentTime * 360 * 2);
+		minuteHand.transform.localRotation = Quaternion.Euler(0, 0, -_currentTime * 360 * 24);
 	}
 	void UpdateAlarmHand(float time)
 	{
-		if(time>0)
+		if (time >= 0)
 		{
 			alarmHand.gameObject.SetActive(true);
 			float _currentTime = time / Clock.TotalTimeInDay;
