@@ -4,6 +4,9 @@ using System.Net;
 using UnityEngine;
 using UnityEngine.Events;
 
+/// <summary>
+/// Singleton
+/// </summary>
 public class Clock : MonoBehaviour
 {
 	#region Fields
@@ -17,11 +20,11 @@ public class Clock : MonoBehaviour
 	float currentTime, alarmTime = -1f;
 	int lastHour, lastMinute, lastSecond, lastTime;
 	const int totalTimeInDay = 60 * 60 * 24;
+	bool timeOverwriten = false;
 	UnityEvent timeChanged = new UnityEvent();
 	UnityEvent alarm = new UnityEvent();
 	UnityEvent<float> alarmSetUp = new UnityEvent<float>();
 
-	DeviceOrientation lastFrameOrientation = DeviceOrientation.Portrait;
 	#endregion
 
 	#region Properties
@@ -31,13 +34,14 @@ public class Clock : MonoBehaviour
 	public UnityEvent<float> AlarmSetUp { get => alarmSetUp; }
 	public float CurrentTime { get => currentTime; }
 	/// <summary>
-	/// Alarm is set if this values is above 0;
+	/// Alarm is set if this values is above or equal 0;
 	/// </summary>
 	public float AlarmTime { get => alarmTime; }
 	public int LastHour { get => lastHour; }
 	public int LastMinute { get => lastMinute; }
 	public int LastSecond { get => lastSecond; }
 	public static int TotalTimeInDay => totalTimeInDay;
+	public bool TimeOverwriten { get => timeOverwriten; set => timeOverwriten = value; }
 	#endregion
 
 	#region Methods
@@ -53,39 +57,11 @@ public class Clock : MonoBehaviour
 	private void Start()
 	{
 		ReadWebTime();
-		lastFrameOrientation = Input.deviceOrientation;
 	}
 	private void FixedUpdate()
 	{
 		currentTime += Time.fixedDeltaTime * timeSpeed;
 		CheckTime();
-		if (lastFrameOrientation != Input.deviceOrientation)
-		{
-			lastFrameOrientation = Input.deviceOrientation;
-			switch (Input.deviceOrientation)
-			{
-				case DeviceOrientation.Portrait:
-					uiParent.rotation = Quaternion.Euler(0, 0, 0);
-					analogParent.rotation = Quaternion.Euler(0, 0, 0);
-					break;
-				case DeviceOrientation.PortraitUpsideDown:
-					uiParent.rotation = Quaternion.Euler(0, 0, 180);
-					analogParent.rotation = Quaternion.Euler(0, 0, 180);
-					break;
-				case DeviceOrientation.LandscapeLeft:
-					uiParent.rotation = Quaternion.Euler(0, 0, -90);
-					analogParent.rotation = Quaternion.Euler(0, 0, -90);
-					break;
-				case DeviceOrientation.LandscapeRight:
-					uiParent.rotation = Quaternion.Euler(0, 0, 90);
-					analogParent.rotation = Quaternion.Euler(0, 0, 90);
-					break;
-				default:
-					uiParent.rotation = Quaternion.Euler(0, 0, 0);
-					analogParent.rotation = Quaternion.Euler(0, 0, 0);
-					break;
-			}
-		}
 	}
 	void CheckTime()
 	{
@@ -106,10 +82,13 @@ public class Clock : MonoBehaviour
 						lastHour = 0;
 						currentTime = 0;
 					}
-					ReadWebTime();
+					if (!timeOverwriten)
+					{
+						ReadWebTime();
+					}
 				}
 			}
-			if (alarmTime > 0 && (int)alarmTime == lastTime + 1)
+			if (alarmTime >= 0 && (int)alarmTime == lastTime + 1)
 			{
 				alarm.Invoke();
 			}
@@ -155,6 +134,26 @@ public class Clock : MonoBehaviour
 		}
 		_response.Close();
 		return _res;
+	}
+	public void OverwriteTime(float time)
+	{
+		if (time >= 0 && time < totalTimeInDay)
+		{
+			currentTime = time;
+			lastHour = (int)currentTime / (60 * 60);
+			lastMinute = ((int)currentTime % (60 * 60))/60;
+			lastSecond = 0;
+			timeOverwriten = true;
+		}
+		else
+		{
+			Debug.LogError("Trying to overwrite time wiht incorrect value. Passed vlaue = " + time);
+		}
+	}
+	public void ClearTimeOverwrite()
+	{
+		timeOverwriten = false;
+		ReadWebTime();
 	}
 	public void SetAlarm(float time)
 	{

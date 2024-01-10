@@ -5,9 +5,9 @@ public class UIHandler : MonoBehaviour
 {
 	#region Fields
 	[SerializeField]
-	GameObject alarmSetUpMenue, analogSetup, clockMenue, analogClock, alarmWindow;
+	GameObject alarmSetUpMenue, analogInput, digitalInput, clockMenue, analogClock, alarmWindow, timeOverwriteWindow;
 	[SerializeField]
-	AnalogHandle alarmHourSetupHand, alarmMinuteSetupHand;
+	AnalogHandle hourHand, minuteHand;
 	[SerializeField]
 	TMP_InputField hourInputField, minuteInputField;
 
@@ -17,27 +17,48 @@ public class UIHandler : MonoBehaviour
 	#region Methods
 	private void Start()
 	{
-		alarmHourSetupHand.ValueChanged.AddListener(AnalogInputUpdate);
-		alarmMinuteSetupHand.ValueChanged.AddListener(AnalogInputUpdate);
+		hourHand.ValueChanged.AddListener(AnalogInputUpdate);
+		minuteHand.ValueChanged.AddListener(AnalogInputUpdate);
 		Clock.Instance.Alarm.AddListener(ShowAlarmWindow);
 	}
-	public void SwitchMenue()
+	public void SwitchToDefaultView()
 	{
-		if (alarmSetUpMenue.activeSelf)
-		{
-			alarmSetUpMenue.SetActive(false);
-			analogSetup.SetActive(false);
-			clockMenue.SetActive(true);
-			analogClock.SetActive(true);
-		}
-		else
-		{
-			alarmSetUpMenue.SetActive(true);
-			analogSetup.SetActive(true);
-			clockMenue.SetActive(false);
-			analogClock.SetActive(false);
-		}
+		ResetInput();
+		alarmSetUpMenue.SetActive(false);
+		timeOverwriteWindow.SetActive(false);
+		analogInput.SetActive(false);
+		digitalInput.SetActive(false);
+		clockMenue.SetActive(true);
+		analogClock.SetActive(true);
 	}
+	public void SwitchToOverwrite()
+	{
+		ResetInput();
+		alarmSetUpMenue.SetActive(false);
+		timeOverwriteWindow.SetActive(true);
+		analogInput.SetActive(true);
+		digitalInput.SetActive(true);
+		clockMenue.SetActive(false);
+		analogClock.SetActive(false);
+	}
+	public void SwitchToAlarmSetUp()
+	{
+		ResetInput();
+		alarmSetUpMenue.SetActive(true);
+		timeOverwriteWindow.SetActive(false);
+		analogInput.SetActive(true);
+		digitalInput.SetActive(true);
+		clockMenue.SetActive(false);
+		analogClock.SetActive(false);
+	}
+	void ResetInput()
+	{
+		hourHand.transform.localRotation = Quaternion.Euler(0, 0, 0);
+		minuteHand.transform.localRotation = Quaternion.Euler(0, 0, 0);
+		hourInputField.text = "00";
+		minuteInputField.text = "00";
+	}
+
 	public void DigitalInputUpdate()
 	{
 		try
@@ -59,17 +80,17 @@ public class UIHandler : MonoBehaviour
 		hourInputField.text = hourInput.ToString("00");
 		minuteInputField.text = minuteInput.ToString("00");
 		float _currentTime = (float)(hourInput * 60 * 60 + minuteInput * 60) / (float)Clock.TotalTimeInDay;
-		alarmHourSetupHand.transform.localRotation = Quaternion.Euler(0, 0, -_currentTime * 360);
-		alarmMinuteSetupHand.transform.localRotation = Quaternion.Euler(0, 0, -_currentTime * 360 * 24);
+		hourHand.transform.localRotation = Quaternion.Euler(0, 0, -_currentTime * 360);
+		minuteHand.transform.localRotation = Quaternion.Euler(0, 0, -_currentTime * 360 * 24);
 	}
 	public void AnalogInputUpdate(float unused)
 	{
-		hourInput = (int)Mathf.Clamp(alarmHourSetupHand.Value * 24f, 0, 24);
+		hourInput = (int)Mathf.Clamp(hourHand.Value * 24f, 0, 24);
 		if (hourInput == 24)
 		{
 			hourInput = 0;
 		}
-		minuteInput = (int)Mathf.Clamp(alarmMinuteSetupHand.Value * 60f, 0, 60);
+		minuteInput = (int)Mathf.Clamp(minuteHand.Value * 60f, 0, 60);
 		if (minuteInput == 60)
 		{
 			minuteInput = 0;
@@ -97,6 +118,19 @@ public class UIHandler : MonoBehaviour
 	public void ShowAlarmWindow()
 	{
 		alarmWindow.SetActive(true);
+	}
+	public void SetTimeOverwrite()
+	{
+		hourInputField.text = hourInput.ToString("00");
+		minuteInputField.text = minuteInput.ToString("00");
+		hourInput = int.Parse(hourInputField.text);
+		minuteInput = int.Parse(minuteInputField.text);
+		float _currentTime = hourInput * 60 * 60 + minuteInput * 60;
+		Clock.Instance.OverwriteTime(_currentTime);
+	}
+	public void ClearOverwrite()
+	{
+		Clock.Instance.ClearTimeOverwrite();
 	}
 	#endregion
 }

@@ -10,7 +10,13 @@ public class AnalogHandle : MonoBehaviour
 	#endregion
 
 	#region Properties
-	public float Value{ get{ return 1 - transform.localRotation.eulerAngles.z / 360; } }
+	public float Value
+	{
+		get
+		{
+			return 1 - transform.localRotation.eulerAngles.z / 360;
+		}
+	}
 	public UnityEvent<float> ValueChanged { get => valueChanged; }
 	#endregion
 
@@ -21,9 +27,9 @@ public class AnalogHandle : MonoBehaviour
 	}
 	private void Update()
 	{
-		if (follow && Input.touchCount == 1)
+		if (follow)
 		{
-			Vector3 _targ = mainCamera.ScreenToWorldPoint(Input.touches[0].position);
+			Vector3 _targ = mainCamera.ScreenToWorldPoint(Input.mousePosition);
 			_targ.z = 0f;
 			_targ.x = _targ.x - transform.position.x;
 			_targ.y = _targ.y - transform.position.y;
