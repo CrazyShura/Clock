@@ -104,8 +104,8 @@ public class UIHandler : MonoBehaviour
 		minuteInputField.text = minuteInput.ToString("00");
 		hourInput = int.Parse(hourInputField.text);
 		minuteInput = int.Parse(minuteInputField.text);
-		float _currentTime = hourInput * 60 * 60 + minuteInput * 60;
-		Clock.Instance.SetAlarm(_currentTime);
+		float _alarmTime = hourInput * 60 * 60 + minuteInput * 60;
+		Clock.Instance.SetAlarm(_alarmTime);
 	}
 	public void SnoozAlarm()
 	{

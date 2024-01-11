@@ -1,8 +1,10 @@
 using System;
+using System.Collections;
 using System.Globalization;
 using System.Net;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Networking;
 
 /// <summary>
 /// Singleton
@@ -11,7 +13,6 @@ public class Clock : MonoBehaviour
 {
 	#region Fields
 	static Clock instance;
-
 	[SerializeField]
 	Transform uiParent, analogParent;
 	[SerializeField, Range(1, 10)]
@@ -97,13 +98,13 @@ public class Clock : MonoBehaviour
 	}
 	void ReadWebTime()
 	{
-		DateTime _dateTime = GetWebTime();
-		lastHour = _dateTime.Hour;
-		lastMinute = _dateTime.Minute;
-		lastSecond = _dateTime.Second;
-		currentTime = lastHour * 60 * 60 + lastMinute * 60 + lastSecond;
+#if UNITY_STANDALONE_WIN
+		GetWebTime();
+#else
+		StartCoroutine("ReadYandexTime");
+#endif
 	}
-	DateTime GetWebTime()
+	void GetWebTime()
 	{
 		WebResponse _response = null;
 		DateTime _res;
@@ -133,7 +134,41 @@ public class Clock : MonoBehaviour
 			_res = DateTime.Now;
 		}
 		_response.Close();
-		return _res;
+		lastHour = _res.Hour;
+		lastMinute = _res.Minute;
+		lastSecond = _res.Second;
+		currentTime = lastHour * 60 * 60 + lastMinute * 60 + lastSecond;
+	}
+	IEnumerator ReadYandexTime()
+	{
+		using (UnityWebRequest webRequest = UnityWebRequest.Get("https://yandex.com/time/sync.json?geo=213"))
+		{
+			// Request and wait for the desired page.
+			yield return webRequest.SendWebRequest();
+			if (webRequest.result == UnityWebRequest.Result.ConnectionError || webRequest.result == UnityWebRequest.Result.ProtocolError)
+			{
+				Debug.LogError("Reading Yandex time was unsecsessfull");
+				DateTime _dateTime = DateTime.Now;
+				lastHour = _dateTime.Hour;
+				lastMinute = _dateTime.Minute;
+				lastSecond = _dateTime.Second;
+				currentTime = lastHour * 60 * 60 + lastMinute * 60 + lastSecond;
+			}
+			else
+			{
+				string _temp = webRequest.downloadHandler.text;
+				YandexTime _yandexTime = JsonUtility.FromJson<YandexTime>(_temp);
+				TimeSpan _timeSpan = TimeSpan.FromMilliseconds(_yandexTime.time);
+				lastHour = _timeSpan.Hours + 3;
+				if(lastHour >= 24)
+				{
+					lastHour -= 24;
+				}
+				lastMinute = _timeSpan.Minutes;
+				lastSecond = _timeSpan.Seconds;
+				currentTime = lastHour * 60 * 60 + lastMinute * 60 + lastSecond;
+			}
+		}
 	}
 	public void OverwriteTime(float time)
 	{
@@ -141,7 +176,7 @@ public class Clock : MonoBehaviour
 		{
 			currentTime = time;
 			lastHour = (int)currentTime / (60 * 60);
-			lastMinute = ((int)currentTime % (60 * 60))/60;
+			lastMinute = ((int)currentTime % (60 * 60)) / 60;
 			lastSecond = 0;
 			timeOverwriten = true;
 		}
